@@ -31,8 +31,7 @@ class Bindings:
         return any(keys[b] for b in self.flap_bindings)
 
     def any_pressed(self) -> bool:
-        keys = pygame.key.get_pressed()
-        return keys[self.left] or keys[self.right] or keys[self.flap]
+        return self.left_is_pressed() or self.right_is_pressed() or self.flap_is_pressed()
 
 PLAYER_CONTROLS = [
     Bindings([pygame.K_LEFT], [pygame.K_RIGHT], [pygame.K_m]),
