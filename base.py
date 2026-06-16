@@ -19,7 +19,7 @@ JOUSTER_MAX_Y_VELOCITY = 100.0
 
 JOUSTER_BOUNCE_DAMPING = 0.8
 
-NEUTRAL_JOUST_DISTANCE = 2.5
+NEUTRAL_JOUST_DISTANCE = 2.0
 JOUSTER_COLLISION_FORCE_MULTIPLIER = 100.0
 
 JOUSTER_SPRITE_OFFSET = Vector2(0, -3.0)
@@ -118,7 +118,6 @@ class Jouster(PhysCircle):
             elif self.facing_dir == 1 and self.velocity.x < 0:
                 xvel_force_multiplier *= JOUSTER_TURNAROUND_MULTIPLIER
             self.velocity.x += xvel_force_multiplier * self.facing_dir
-
 
             self.flap_cooldown_timer = JOUSTER_FLAP_COOLDOWN
             self.flap_visual_timer = JOUSTER_FLAP_VISUAL_DURATION

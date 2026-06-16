@@ -5,38 +5,49 @@ from animation import AnimationManager
 from assets import ASSETS
 from util import draw_circle_alpha
 from game_globals import Globals
+from bindings import Bindings, joystick
 
 PLAYER_RADIUS = 6.0
 
-class Bindings:
-    def __init__(self, left_bindings: list[int], right_bindings: list[int], flap_bindings: list[int]):
-        self.left_bindings = left_bindings
-        self.right_bindings = right_bindings
-        self.flap_bindings = flap_bindings  
 
-    def left_is_pressed(self) -> bool:
-        keys = pygame.key.get_pressed()
-        return any(keys[b] for b in self.left_bindings)
+def create_player_bindings() -> list[Bindings]:
+    p1_bindings = Bindings()
+    p1_bindings.add_binary_action('left', [
+        lambda: pygame.key.get_pressed()[pygame.K_LEFT],
+        lambda: joystick(0).get_hat(0)[0] < 0,
+        lambda: joystick(0).get_axis(0) < 0
+    ])
+    p1_bindings.add_binary_action('right', [
+        lambda: pygame.key.get_pressed()[pygame.K_RIGHT],
+        lambda: joystick(0).get_hat(0)[0] > 0,
+        lambda: joystick(0).get_axis(0) > 0
+    ])
+    p1_bindings.add_binary_action('flap', [
+        lambda: pygame.key.get_pressed()[pygame.K_m],
+        lambda: joystick(0).get_button(0)
+    ])
 
-    def right_is_pressed(self) -> bool:
-        keys = pygame.key.get_pressed()
-        return any(keys[b] for b in self.right_bindings)
+    p2_bindings = Bindings()
+    p2_bindings.add_binary_action('left', [
+        lambda: pygame.key.get_pressed()[pygame.K_a],
+        lambda: joystick(1).get_hat(0)[0] < 0,
+        lambda: joystick(1).get_axis(0) < 0
+    ])
+    p2_bindings.add_binary_action('right', [
+        lambda: pygame.key.get_pressed()[pygame.K_d],
+        lambda: joystick(1).get_hat(0)[0] > 0,
+        lambda: joystick(1).get_axis(0) > 0
 
-    def flap_is_pressed(self) -> bool:
-        keys = pygame.key.get_pressed()
-        return any(keys[b] for b in self.flap_bindings)
-    
-    def flap_just_pressed(self) -> bool:
-        keys = pygame.key.get_just_pressed()
-        return any(keys[b] for b in self.flap_bindings)
+    ])
+    p2_bindings.add_binary_action('flap', [
+        lambda: pygame.key.get_pressed()[pygame.K_SPACE],
+        lambda: joystick(1).get_button(0)
+    ])
 
-    def any_pressed(self) -> bool:
-        return self.left_is_pressed() or self.right_is_pressed() or self.flap_is_pressed()
+    return [p1_bindings, p2_bindings]
 
-PLAYER_CONTROLS = [
-    Bindings([pygame.K_LEFT], [pygame.K_RIGHT], [pygame.K_m]),
-    Bindings([pygame.K_a], [pygame.K_d], [pygame.K_SPACE]),
-]
+
+PLAYER_CONTROLS = create_player_bindings()
 
 class Player(Jouster):
     def __init__(self, position: Vector2, player_number: int):
@@ -64,22 +75,22 @@ class Player(Jouster):
         self.visual_facing_left = False
 
     def update(self, delta: float, surf_width: float, platforms: list[Platform], jousters: list[Jouster]):
-        if self.keybinds.left_is_pressed():
+        if self.keybinds.get_binary_action('left'):
             self.face_left()
             self.visual_facing_left = True
-        elif self.keybinds.right_is_pressed():
+        elif self.keybinds.get_binary_action('right'):
             self.face_right()
             self.visual_facing_left = False
         else:
             self.face_neutral()
         
-        if self.keybinds.flap_just_pressed():
+        if self.keybinds.get_pressed_binary_action('flap'):
             self.flap()
 
         super().update(delta, surf_width, platforms, jousters)
     
     def should_bounce_off_ground(self):
-        return super().should_bounce_off_ground() or self.keybinds.flap_is_pressed()
+        return super().should_bounce_off_ground() or self.keybinds.get_binary_action('flap')
 
     def draw(self, surf: Surface):
         half_frame_size = Vector2(self.anim.frame_width, self.anim.frame_height) / 2

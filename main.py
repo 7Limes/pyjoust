@@ -3,13 +3,15 @@ import pygame
 from pygame import Vector2, Surface
 from player import Player, PLAYER_CONTROLS
 from base import Jouster, Platform, Spawner
-from enemy import Enemy, RandomLaneEnemy, ChaseLaneEnemy, ChaseEnemy, CautiousEnemy, ForwardThinkerEnemy
+from enemy import Enemy, RandomLaneEnemy, ChaseLaneEnemy, CautiousEnemy, ForwardThinkerEnemy
 from collectable import Collectable, Egg
 from assets import ASSETS
 from util import move_towards
-from effects import Effect, ExplodeEffect, PlayerRespawnEffect, ScoreEffect, RESPAWN_EFFECT_DURATION
+from effects import Effect, ExplodeEffect, PlayerRespawnEffect, ScoreEffect, TextEffect, RESPAWN_EFFECT_DURATION
 from game_globals import Globals
 from font import BitmapFont
+from bindings import init_joystick_cache, reload_joystick_cache
+
 
 WINDOW_SCALE = 4.0
 BASE_RESOLUTION = (256, 192)
@@ -17,7 +19,6 @@ BASE_RESOLUTION = (256, 192)
 ENEMY_TYPES = [
     RandomLaneEnemy,
     ChaseLaneEnemy,
-    ChaseEnemy,
     CautiousEnemy,
     ForwardThinkerEnemy
 ]
@@ -25,7 +26,7 @@ ENEMY_TYPES = [
 PLAYER_RESPAWN_COOLDOWN = 3.0
 SPAWN_PROTECTION_RADIUS = 40.0
 
-MAX_ENEMY_COUNT = 1
+MAX_ENEMY_COUNT = 3
 ENEMY_SPAWN_COOLDOWN = (3.0, 7.0)
 
 
@@ -37,6 +38,9 @@ def main():
     pygame.display.set_caption('joust')
     clock = pygame.time.Clock()
     font = pygame.font.SysFont('monospace', 15)
+
+    pygame.joystick.init()
+    init_joystick_cache()
 
     ASSETS.load()
 
@@ -98,14 +102,14 @@ def main():
     running = True
     while running:
         delta = clock.tick(60) / 1000.0
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            
+            elif event.type == pygame.JOYDEVICEADDED or event.type == pygame.JOYDEVICEREMOVED:
+                reload_joystick_cache()
+                    
         if pygame.key.get_just_pressed()[pygame.K_BACKSLASH]:
             Globals.debug_mode = not Globals.debug_mode
-
         # -- Game updates --
 
         # Spawn new enemies
@@ -176,7 +180,10 @@ def main():
         for player_number, respawn_data in list(player_respawn_data.items()):
             if player_number in player_respawn_timers:
                 continue
-            if PLAYER_CONTROLS[player_number].any_pressed():
+            
+            bindings = PLAYER_CONTROLS[player_number]
+            any_pressed = bindings.get_binary_action('left') or bindings.get_binary_action('right') or bindings.get_binary_action('flap')
+            if any_pressed:
                 spawn_pos, respawn_effect = respawn_data
                 respawn_effect.should_delete = True
                 spawn_player(player_number, spawn_pos)
@@ -201,6 +208,7 @@ def main():
         scaled_render_surf = pygame.transform.scale_by(render_surf, WINDOW_SCALE)
         win.blit(scaled_render_surf, (0, 0))
         win.blit(font.render(f'{clock.get_fps():.1f}', True, (255, 255, 255)), (0, 0))
+
 
         pygame.display.flip()
 

@@ -1,8 +1,9 @@
 import pygame
-from pygame import Vector2, Surface, Rect
+from pygame import Vector2, Surface, Rect, Color
 from animation import AnimationManager
 from assets import ASSETS
 from util import move_towards
+from font import BitmapFont
 
 RESPAWN_EFFECT_DURATION = 0.5
 
@@ -65,4 +66,13 @@ class ScoreEffect(Effect):
             position,
             AnimationManager(ASSETS.score_250_y, ASSETS.score_250_y.width, 1.0),
             render_offset=(-10, -10)
+        )
+
+
+class TextEffect(Effect):
+    def __init__(self, position: Vector2, font: BitmapFont, text: str, color: Color, duration: float=1.0):
+        text_surf = font.render(text, color)
+        super().__init__(
+            position,
+            AnimationManager(text_surf, text_surf.width, duration)
         )
