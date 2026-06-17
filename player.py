@@ -71,26 +71,27 @@ class Player(Jouster):
         team = player_number if Globals.player_friendly_fire else 0
         super().__init__(position, PLAYER_RADIUS, team, animations)
         self.player_number = player_number
-        self.keybinds = PLAYER_CONTROLS[player_number]
+        self.bindings = PLAYER_CONTROLS[player_number]
         self.visual_facing_left = False
 
     def update(self, delta: float, surf_width: float, platforms: list[Platform], jousters: list[Jouster]):
-        if self.keybinds.get_binary_action('left'):
+        if self.bindings.get_binary_action('left'):
             self.face_left()
             self.visual_facing_left = True
-        elif self.keybinds.get_binary_action('right'):
+        elif self.bindings.get_binary_action('right'):
             self.face_right()
             self.visual_facing_left = False
         else:
             self.face_neutral()
         
-        if self.keybinds.get_pressed_binary_action('flap'):
+        if self.bindings.get_pressed_binary_action('flap'):
             self.flap()
 
         super().update(delta, surf_width, platforms, jousters)
+        self.bindings.save_previous_binary_actions()
     
     def should_bounce_off_ground(self):
-        return super().should_bounce_off_ground() or self.keybinds.get_binary_action('flap')
+        return super().should_bounce_off_ground() or self.bindings.get_binary_action('flap')
 
     def draw(self, surf: Surface):
         half_frame_size = Vector2(self.anim.frame_width, self.anim.frame_height) / 2

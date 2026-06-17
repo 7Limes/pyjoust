@@ -8,7 +8,7 @@ JOUSTER_GRAVITY = 2.0
 JOUSTER_FLAP_Y_FORCE = 35.0
 JOUSTER_FLAP_X_FORCE = 25.0
 JOUSTER_GROUND_FLAP_FORCE = 60.0
-JOUSTER_FLAP_COOLDOWN = 0.1
+JOUSTER_FLAP_COOLDOWN = 0.12
 JOUSTER_FLAP_VISUAL_DURATION = 0.15
 JOUSTER_TURNAROUND_MULTIPLIER = 2.0
 
@@ -25,7 +25,6 @@ JOUSTER_COLLISION_FORCE_MULTIPLIER = 100.0
 JOUSTER_SPRITE_OFFSET = Vector2(0, -3.0)
 
 LAVA_Y_POS = 180.0
-
 
 
 class Platform:
@@ -69,7 +68,7 @@ class Jouster(PhysCircle):
     def __init__(self, position: Vector2, radius: float, team: int, animations: tuple[AnimationManager, ...]):
         super().__init__(position, radius)
         self.is_dead = False
-        self.is_grounded = False
+        self.is_grounded = True
         self.flap_cooldown_timer = 0.0
         self.flap_visual_timer = 0.0
         self.facing_dir = 0.0  # Either -1, 0, or 1

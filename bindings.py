@@ -20,6 +20,7 @@ class Bindings:
 
     def add_binary_action(self, action_name: str, bindings: list[Callable[[], bool]]):
         self.binary_actions[action_name] = bindings
+        self.previous_binary_actions[action_name] = False
     
     def add_axis_action(self, action_name: str, bindings: list[Callable[[], float]]):
         self.axis_actions[action_name] = bindings
@@ -35,12 +36,13 @@ class Bindings:
         except JoystickNotFoundError as e:
             result = default
         
-        self.previous_binary_actions[action_name] = result
         return result
     
     def get_pressed_binary_action(self, action_name: str, default=False) -> bool:
         """
         Returns True if the action was just pressed
+        Requires `save_previous_binary_actions` to be called
+        at the end of each frame.
         """
         prev = self.previous_binary_actions.get(action_name)
         current = self.get_binary_action(action_name, default)
@@ -61,6 +63,10 @@ class Bindings:
             raise BindingActionNotFoundError(f'Invalid hat action "{action_name}"')
         except JoystickNotFoundError:
             return default
+    
+    def save_previous_binary_actions(self):
+        for action_name in self.binary_actions:
+            self.previous_binary_actions[action_name] = self.get_binary_action(action_name)
 
 
 class JoystickWrapper:
